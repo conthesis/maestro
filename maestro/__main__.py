@@ -39,7 +39,7 @@ class Maestro:
     async def cas_get(self, hs):
         return await self.req("conthesis.cas.get", hs)
 
-    async def cas_store(self, entity, data):
+    async def cas_store(self, data):
         data_buf = orjson.dumps(data) if not isinstance(data, bytes) else data
         h = await self.req("conthesis.cas.store", data_buf)
         if len(h) == 0:
@@ -52,7 +52,7 @@ class Maestro:
         return res.data
 
     async def store_resource(self, entity: str, data):
-        h = await self.cas_store(entity, data)
+        h = await self.cas_store(data)
         assignment = entity.encode("utf-8") + b"\n" + h
         res = await self.req("conthesis.dcollect.store", assignment)
         if res == b"ERR":
@@ -108,7 +108,7 @@ class Maestro:
 
         if not any(test_results):
             print("Self-tests failed completely")
-        else:
+        elif not all(test_results):
             fails = "".join(["P" if x else "F" for x in test_results])
             print(f"Self-test partial failure {fails}")
 
