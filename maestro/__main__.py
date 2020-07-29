@@ -35,42 +35,21 @@ class Maestro:
         await self.nc.connect(os.environ["NATS_URL"])
         asyncio.create_task(self.manage_system())
 
-
-    async def cas_get(self, hs):
-        return await self.req("conthesis.cas.get", hs)
-
-    async def cas_store(self, data):
-        data_buf = orjson.dumps(data) if not isinstance(data, bytes) else data
-        h = await self.req("conthesis.cas.store", data_buf)
-        if len(h) == 0:
-            raise RuntimeError("Store_failed")
-        return h
-
     async def req(self, topic: str, data: Union[bytes, str]) -> bytes:
         bfr = data if isinstance(data, bytes) else data.encode("utf-8")
         res = await self.nc.request(topic, bfr, timeout=3)
         return res.data
 
     async def store_resource(self, entity: str, data):
-        h = await self.cas_store(data)
-        assignment = entity.encode("utf-8") + b"\n" + h
-        res = await self.req("conthesis.dcollect.store", assignment)
+        data_buf = orjson.dumps(data) if not isinstance(data, bytes) else data
+        assignment = b"/entity/" + entity.encode("utf-8") + b"\n" + data_buf
+        res = await self.req("conthesis.cfs.put", assignment)
         if res == b"ERR":
             raise RuntimeError("failed to store")
         return True
 
-    async def get_pointer(self, entity: str) -> Optional[bytes]:
-        hs = await self.req("conthesis.dcollect.get", entity)
-        if hs is None:
-            return None
-        return hs
-
-
     async def get_resource(self, entity: str):
-        hs = await self.get_pointer(entity)
-        if hs is None:
-            return None
-        return await self.cas_get(hs)
+        return await self.req("conthesis.cfs.get", f"/entity/{entity}")
 
     async def ensure_resources(self):
         coros = [
@@ -93,7 +72,7 @@ class Maestro:
             except:
                 traceback.print_exc()
 
-            await asyncio.sleep(60)
+            await asyncio.sleep(10)
 
 
     async def self_test(self):
