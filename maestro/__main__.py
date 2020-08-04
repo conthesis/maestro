@@ -6,9 +6,9 @@ import orjson
 from nats.aio.client import Client as NATS
 
 TO_STORE = {
-    "_conthesis.watcher.UpdateWatcher": {
+    "_conthesis/watcher/UpdateWatcher": {
         "kind": "entwatcher.UpdateWatchEntity",
-        "wildcard_triggers": ["_conthesis.watcher"],
+        "wildcard_triggers": ["_conthesis/watcher"],
         "properties": [
             {"name": "name", "kind": "META_FIELD", "value": "updated_entity"},
             {"name": "entity", "kind": "META_ENTITY", "value": "updated_entity",},
@@ -18,7 +18,7 @@ TO_STORE = {
 
 ENTWATCHER_BOOTSTRAP_ACTION = {
     "meta": {
-        "updated_entity": "_conthesis.watcher.UpdateWatcher",
+        "updated_entity": "_conthesis/watcher/UpdateWatcher",
         "bootstrap": True,
     },
     "action_source": "ENTITY",
@@ -60,7 +60,7 @@ class Maestro:
         return True
 
     async def trigger_automatic_actions(self):
-        res = await self.req("conthesis.action.TriggerAction", orjson.dumps(ENTWATCHER_BOOTSTRAP_ACTION))
+        res = await self.req("conthesis.action.TriggerAsyncAction", orjson.dumps(ENTWATCHER_BOOTSTRAP_ACTION))
 
 
     async def manage_system(self):
@@ -79,8 +79,8 @@ class Maestro:
         test_sequence = [f"self_test/{i}".encode("utf-8") for i in range(3)]
         test_results = []
         for x in test_sequence:
-            await self.store_resource("_conthesis.self_test", x)
-            res = await self.get_resource("_conthesis.self_test")
+            await self.store_resource("_conthesis/self_test", x)
+            res = await self.get_resource("_conthesis/self_test")
             if res != x:
                 print(f"Expected {x}, was {res}")
             test_results.append(res == x)
