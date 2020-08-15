@@ -21,8 +21,8 @@ ENTWATCHER_BOOTSTRAP_ACTION = {
         "updated_entity": "_conthesis/watcher/UpdateWatcher",
         "bootstrap": True,
     },
-    "action_source": "ENTITY",
-    "action": "_conthesis.watcher.UpdateWatcher"
+    "action_source": "PATH",
+    "action": "/entity/_conthesis/watcher/UpdateWatcher"
 }
 
 class Maestro:
